@@ -1306,6 +1306,14 @@ struct TerminalActivator {
             }
             let r2 = ProcessRunner.runResult(path: cmuxBin, args: args, removeKeys: strip)
             log.info("cmux focus-panel args=\(args, privacy: .public) exit=\(r2?.status ?? -1) err=\(r2?.stderr ?? "", privacy: .public)")
+
+            // "Broken pipe" means cmux's socket ACL rejected us: CodeIsland is a
+            // LaunchServices child (not a cmux descendant), so cmux's default
+            // socketControlMode=cmuxOnly closes the connection. Fix is cmux-side:
+            // set automation.socketControlMode="automation" in ~/.config/cmux/cmux.json.
+            if let err = r2?.stderr, err.localizedCaseInsensitiveContains("broken pipe") {
+                log.error("cmux: socket rejected control (broken pipe) — set cmux socketControlMode to 'automation' to allow CodeIsland")
+            }
         }
     }
 
