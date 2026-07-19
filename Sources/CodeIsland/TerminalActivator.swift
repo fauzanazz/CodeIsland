@@ -1,11 +1,14 @@
 import AppKit
 import ApplicationServices
 import CodeIslandCore
+import os.log
 
 /// Activates the terminal window/tab running a specific Claude Code session.
 /// Supports tab-level switching for: Ghostty, iTerm2, Terminal.app, WezTerm, kitty.
 /// Falls back to app-level activation for: Alacritty, Warp, Hyper, Tabby, Rio.
 struct TerminalActivator {
+    private static let log = Logger(subsystem: "com.codeisland", category: "TerminalActivator")
+
     // Internal (not private) so support tests can assert a terminal is recognized,
     // matching sourceToNativeAppBundleId's visibility. See TeraxSupportTests.
     static let knownTerminals: [(name: String, bundleId: String)] = [
@@ -1269,21 +1272,40 @@ struct TerminalActivator {
         activateByBundleId("com.cmuxterm.app")
 
         // No surface ID — degrade to app-level activation (already done above)
-        guard let sid = surfaceId, !sid.isEmpty else { return }
+        guard let sid = surfaceId, !sid.isEmpty else {
+            log.info("cmux: no surfaceId; app-level activation only")
+            return
+        }
 
         // Prefer bundle-embedded binary, then fall back to Homebrew / system paths
         guard let cmuxBin = findBinary("cmux", extraPaths: [
             "/Applications/cmux.app/Contents/Resources/bin/cmux",
             NSHomeDirectory() + "/Applications/cmux.app/Contents/Resources/bin/cmux",
-        ]) else { return }
+        ]) else {
+            log.error("cmux: CLI binary not found")
+            return
+        }
 
-        // Invoke focus-panel CLI asynchronously to avoid blocking the main thread
+        // Strip inherited cmux caller-context so the CLI connects to the LIVE
+        // socket (via ~/.local/state/cmux/last-socket-path) and resolves the
+        // surface globally, not against whatever context CodeIsland launched in.
+        // Keep CMUX_SOCKET_PASSWORD — needed for socket auth.
+        let strip = ["CMUX_SOCKET_PATH", "CMUX_SURFACE_ID", "CMUX_WORKSPACE_ID", "CMUX_TAB_ID", "CMUX_PANEL_ID"]
+
+        // Invoke CLI asynchronously to avoid blocking the main thread
         DispatchQueue.global(qos: .userInitiated).async {
+            // Best-effort: land on the correct workspace even if the surface UUID is stale.
+            if let wid = workspaceId, !wid.isEmpty {
+                let r = ProcessRunner.runResult(path: cmuxBin, args: ["select-workspace", "--workspace", wid], removeKeys: strip)
+                log.info("cmux select-workspace exit=\(r?.status ?? -1) err=\(r?.stderr ?? "", privacy: .public)")
+            }
+
             var args = ["focus-panel", "--panel", sid]
             if let wid = workspaceId, !wid.isEmpty {
                 args += ["--workspace", wid]
             }
-            _ = runProcess(cmuxBin, args: args)
+            let r2 = ProcessRunner.runResult(path: cmuxBin, args: args, removeKeys: strip)
+            log.info("cmux focus-panel args=\(args, privacy: .public) exit=\(r2?.status ?? -1) err=\(r2?.stderr ?? "", privacy: .public)")
         }
     }
 
