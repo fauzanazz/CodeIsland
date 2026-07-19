@@ -2243,6 +2243,15 @@ private struct SessionCard: View {
                         if session.isYoloMode == true {
                             SessionTag("YOLO", color: Color(red: 1.0, green: 0.35, blue: 0.35))
                         }
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.white.opacity(hovering ? 0.8 : 0.35))
+                            .frame(width: 20, height: 20)
+                            .contentShape(Rectangle())
+                            .highPriorityGesture(TapGesture().onEnded {
+                                appState.dismissSession(sessionId)
+                            })
+                            .help(L10n.shared["remove_session"])
                         SessionTag(timeAgo(session.startTime))
                         TerminalBadge(session: session)
                     }

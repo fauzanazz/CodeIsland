@@ -358,6 +358,7 @@ final class L10n: ObservableObject {
         "settings": "Settings",
         "deny": "DENY",
         "dismiss": "DISMISS",
+        "remove_session": "Remove Session",
         "allow_once": "ALLOW ONCE",
         "always": "ALWAYS",
         "approval_queue_label": "Approval %d/%d: %@",

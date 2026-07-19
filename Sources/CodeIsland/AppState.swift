@@ -1185,6 +1185,15 @@ final class AppState {
         refreshDerivedState()
     }
 
+    /// User-initiated removal of a stale/ghost session from the panel. Sessions
+    /// normally clean up automatically (cleanupIdleSessions), but a session whose
+    /// process/hook signal was lost can linger with no auto-remove trigger — this
+    /// gives the user a manual escape hatch via the session card context menu.
+    /// If the underlying process is still alive it may be re-discovered later.
+    func dismissSession(_ sessionId: String) {
+        removeSession(sessionId)
+    }
+
     private func executeEffect(_ effect: SideEffect, sessionId: String) {
         switch effect {
         case .playSound(let eventName):
