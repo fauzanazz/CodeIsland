@@ -1,5 +1,5 @@
 // CodeIsland pi extension
-// version: v2
+// version: v3
 // OMP-compatible install
 
 /**
@@ -231,9 +231,12 @@ export default function codeislandExtension(pi: ExtensionAPI) {
   const pendingPermissionSessions = new Set<string>();
   /** Sessions for which CodeIsland has already received SessionStart. */
   const startedSessions = new Set<string>();
+  /** Raw id of the session currently active in this process (one at a time). */
+  let activeSessionId: string | null = null;
 
   async function ensureSessionStarted(sessionId: string, cwd: string): Promise<void> {
     const sid = `pi-${sessionId}`;
+    activeSessionId = sessionId;
     if (startedSessions.has(sid)) return;
 
     const sessionName = pi.getSessionName();
@@ -353,6 +356,26 @@ export default function codeislandExtension(pi: ExtensionAPI) {
   pi.on("session_start", async (_event, ctx) => {
     const sessionId = ctx.sessionManager.getSessionId();
     await ensureSessionStarted(sessionId, ctx.cwd);
+  });
+
+  // A session_switch (/new, /resume, /fork, handoff) or session_branch (/branch)
+  // replaces the active session *in-process*. Real OMP fires session_shutdown
+  // only on process exit, so this is the only signal that the previous session
+  // is gone — end it so CodeIsland stops showing it as alive.
+  async function endActiveSession(cwd: string): Promise<void> {
+    const prev = activeSessionId;
+    if (!prev) return;
+    activeSessionId = null;
+    startedSessions.delete(`pi-${prev}`);
+    await sendToSocket(base(prev, cwd, { hook_event_name: "SessionEnd" }, tty));
+  }
+
+  pi.on("session_switch", async (_event, ctx) => {
+    await endActiveSession(ctx.cwd);
+  });
+
+  pi.on("session_branch", async (_event, ctx) => {
+    await endActiveSession(ctx.cwd);
   });
 
   pi.on("session_shutdown", async (_event, ctx) => {

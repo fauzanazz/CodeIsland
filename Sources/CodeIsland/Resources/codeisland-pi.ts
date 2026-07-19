@@ -1,5 +1,5 @@
 // CodeIsland pi extension
-// version: v2
+// version: v3
 
 /**
  * @fileoverview CodeIsland Integration Extension.
