@@ -2793,20 +2793,24 @@ final class AppState {
         for key in Array(processMonitors.keys) { stopMonitor(key) }
     }
 
-    deinit {
-        MainActor.assumeIsolated {
-            rotationTimer?.invalidate()
-            cleanupTimer?.invalidate()
-            saveTimer?.invalidate()
-            if let stream = fsEventStream {
-                FSEventStreamStop(stream)
-                FSEventStreamInvalidate(stream)
-                FSEventStreamRelease(stream)
-            }
-            discoveryScanTask?.cancel()
-            for (_, monitor) in processMonitors {
-                monitor.source.cancel()
-            }
+    // isolated: this @MainActor type's deinit touches main-actor resources
+    // (timers, FSEventStream, dispatch sources). A plain deinit is nonisolated
+    // and can run off the main thread when the last reference is released from
+    // a background executor (e.g. a Task completing in tests), where
+    // MainActor.assumeIsolated traps (SIGTRAP). isolated deinit hops to the
+    // main actor so property access and teardown are always safe.
+    isolated deinit {
+        rotationTimer?.invalidate()
+        cleanupTimer?.invalidate()
+        saveTimer?.invalidate()
+        if let stream = fsEventStream {
+            FSEventStreamStop(stream)
+            FSEventStreamInvalidate(stream)
+            FSEventStreamRelease(stream)
+        }
+        discoveryScanTask?.cancel()
+        for (_, monitor) in processMonitors {
+            monitor.source.cancel()
         }
     }
 
