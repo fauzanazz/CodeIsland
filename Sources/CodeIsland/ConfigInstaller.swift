@@ -2677,7 +2677,7 @@ struct ConfigInstaller {
     // MARK: - pi Extension
 
     /// Current pi extension version — bump when codeisland-pi.ts changes.
-    private static let piExtensionVersion = "v3"
+    private static let piExtensionVersion = "v5"
 
     private static func piExtensionSource() -> String? {
         if let url = Bundle.appModule.url(forResource: "codeisland-pi", withExtension: "ts", subdirectory: "Resources"),

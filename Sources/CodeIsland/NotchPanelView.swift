@@ -1703,6 +1703,7 @@ private struct SessionListView: View {
     @AppStorage(SettingsKey.sessionGroupingMode) private var groupingMode = SettingsDefaults.sessionGroupingMode
     @AppStorage(SettingsKey.maxVisibleSessions) private var maxVisibleSessions = SettingsDefaults.maxVisibleSessions
     @AppStorage(SettingsKey.showUsageStats) private var showUsageStats = SettingsDefaults.showUsageStats
+    @AppStorage(SettingsKey.showOmpUsageStats) private var showOmpUsageStats = SettingsDefaults.showOmpUsageStats
 
     private var groupedSessions: [(header: String, source: String?, ids: [String])] {
         if let only = onlySessionId, appState.sessions[only] != nil {
@@ -1858,6 +1859,10 @@ private struct SessionListView: View {
                !(usage.last5h.isEmpty && usage.today.isEmpty) {
                 UsageFooterLine(usage: usage)
             }
+            if showOmpUsageStats, onlySessionId == nil, let usage = appState.ompUsage,
+               !usage.today.isEmpty {
+                OmpUsageFooterLine(usage: usage)
+            }
         }
     }
 }
@@ -1866,19 +1871,26 @@ private struct SessionListView: View {
 /// (input + cache writes); cache reads live in the tooltip.
 private struct UsageFooterLine: View {
     let usage: ClaudeUsageScanner.Snapshot
+    var label: String = "Claude"
+    var labelColor: Color = Color(red: 0.85, green: 0.60, blue: 0.40)
     @ObservedObject private var l10n = L10n.shared
 
+    private static let inColor = Color(red: 0.45, green: 0.85, blue: 0.50)
+    private static let outColor = Color(red: 0.44, green: 0.82, blue: 0.95)
+
     var body: some View {
-        HStack(spacing: 5) {
-            Image(systemName: "gauge.with.needle")
-                .font(.system(size: 9, weight: .semibold))
-            Text("Claude")
-                .fontWeight(.semibold)
-            Text("5h \(compact(usage.last5h))")
-            Text("·")
-                .foregroundStyle(.white.opacity(0.25))
-            Text("\(l10n["usage_today"]) \(compact(usage.today))")
-            Spacer()
+        HStack(spacing: 9) {
+            HStack(spacing: 4) {
+                Image(systemName: "gauge.with.needle")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(labelColor)
+                Text(label)
+                    .fontWeight(.bold)
+                    .foregroundStyle(labelColor)
+            }
+            window("5h", usage.last5h)
+            window(l10n["usage_today"], usage.today)
+            Spacer(minLength: 6)
             UsageSparkline(buckets: usage.hourlyOutputTokens)
         }
         .font(.system(size: 10, weight: .medium, design: .monospaced))
@@ -1888,8 +1900,17 @@ private struct UsageFooterLine: View {
         .help(detail)
     }
 
-    private func compact(_ t: ClaudeUsageTotals) -> String {
-        "\(ClaudeUsageScanner.formatTokens(t.inputTokens + t.cacheCreationTokens))↑ \(ClaudeUsageScanner.formatTokens(t.outputTokens))↓"
+    /// One time-window cluster: dim window label + green billed-input↑ + cyan output↓,
+    /// grouped tightly so "5h …" and "today …" read as two distinct buckets.
+    private func window(_ name: String, _ t: ClaudeUsageTotals) -> some View {
+        HStack(spacing: 4) {
+            Text(name)
+                .foregroundStyle(.white.opacity(0.35))
+            Text("\(ClaudeUsageScanner.formatTokens(t.inputTokens + t.cacheCreationTokens))↑")
+                .foregroundStyle(Self.inColor)
+            Text("\(ClaudeUsageScanner.formatTokens(t.outputTokens))↓")
+                .foregroundStyle(Self.outColor)
+        }
     }
 
     private var detail: String {
@@ -1897,6 +1918,84 @@ private struct UsageFooterLine: View {
             "\(label): in \(ClaudeUsageScanner.formatTokens(t.inputTokens)) · out \(ClaudeUsageScanner.formatTokens(t.outputTokens)) · cache write \(ClaudeUsageScanner.formatTokens(t.cacheCreationTokens)) · cache read \(ClaudeUsageScanner.formatTokens(t.cacheReadTokens))"
         }
         return line("5h", usage.last5h) + "\n" + line(l10n["usage_today"], usage.today)
+    }
+}
+
+/// Today-at-a-glance footer for Oh My Pi / OMP: billed tokens, summed cost,
+/// active work time, and request (assistant-turn) count. Local files only.
+private struct OmpUsageFooterLine: View {
+    let usage: OmpUsageScanner.Snapshot
+
+    private static let labelColor = Color(red: 0.44, green: 0.82, blue: 0.85)
+    private static let inColor = Color(red: 0.45, green: 0.85, blue: 0.50)
+    private static let outColor = Color(red: 0.44, green: 0.82, blue: 0.95)
+    private static let costColor = Color(red: 0.87, green: 0.76, blue: 0.45)
+    private static let dim = Color.white.opacity(0.28)
+
+    var body: some View {
+        let t = usage.today
+        HStack(spacing: 7) {
+            HStack(spacing: 4) {
+                Image(systemName: "gauge.with.needle").font(.system(size: 9, weight: .semibold))
+                Text("OMP").fontWeight(.bold)
+                Text("today").foregroundStyle(.white.opacity(0.35))
+            }
+            .foregroundStyle(Self.labelColor)
+
+            Text("\(ClaudeUsageScanner.formatTokens(t.inputTokens + t.cacheCreationTokens))↑")
+                .foregroundStyle(Self.inColor)
+            Text("\(ClaudeUsageScanner.formatTokens(t.outputTokens))↓")
+                .foregroundStyle(Self.outColor)
+
+            separator
+            Text(String(format: "$%.2f", t.cost))
+                .fixedSize()
+            .foregroundStyle(Self.costColor)
+
+            separator
+            HStack(spacing: 3) {
+                Image(systemName: "clock").font(.system(size: 9))
+                Text(Self.duration(usage.workSecondsToday))
+            }
+            .foregroundStyle(.white.opacity(0.62))
+
+            separator
+            HStack(spacing: 3) {
+                Image(systemName: "arrow.triangle.2.circlepath").font(.system(size: 9))
+                Text("\(t.messageCount)")
+            }
+            .foregroundStyle(.white.opacity(0.5))
+
+            Spacer(minLength: 6)
+            UsageSparkline(buckets: usage.hourlyOutputTokens)
+        }
+        .font(.system(size: 10, weight: .medium, design: .monospaced))
+        .foregroundStyle(.white.opacity(0.45))
+        .padding(.horizontal, 14)
+        .padding(.vertical, 5)
+        .help(detail)
+    }
+
+    private var separator: some View {
+        Text("·").foregroundStyle(Self.dim)
+    }
+
+    private static func duration(_ seconds: Int) -> String {
+        let h = seconds / 3600
+        let m = (seconds % 3600) / 60
+        if h > 0 { return "\(h)h\(m)m" }
+        if m > 0 { return "\(m)m" }
+        return "<1m"
+    }
+
+    private var detail: String {
+        let f = ClaudeUsageScanner.formatTokens
+        let t = usage.today
+        return [
+            "Today (OMP)",
+            "in \(f(t.inputTokens)) · out \(f(t.outputTokens)) · cache read \(f(t.cacheReadTokens)) · cache write \(f(t.cacheCreationTokens))",
+            String(format: "cost $%.2f · %d requests · worked %@", t.cost, t.messageCount, Self.duration(usage.workSecondsToday)),
+        ].joined(separator: "\n")
     }
 }
 
@@ -2012,6 +2111,68 @@ private struct SessionIdentityLine: View {
                     .fixedSize()
             }
         }
+    }
+}
+
+/// Compact per-session token-usage badge shown on the session identity line.
+/// Leads with context-window pressure (the number most worth glancing at) and
+/// carries the full input/output/cache-read/cost breakdown in the tooltip.
+private struct SessionUsageBadge: View {
+    let usage: SessionUsage
+    let fontSize: CGFloat
+
+    private static let inColor = Color(red: 0.45, green: 0.85, blue: 0.50)
+    private static let outColor = Color(red: 0.44, green: 0.82, blue: 0.95)
+    private static let costColor = Color(red: 0.87, green: 0.76, blue: 0.45)
+    private static let dimColor = Color.white.opacity(0.28)
+
+    private var contextColor: Color {
+        switch usage.contextPct {
+        case ..<0.6: return Color(red: 0.36, green: 0.66, blue: 0.96)
+        case ..<0.8: return Color(red: 0.98, green: 0.75, blue: 0.20)
+        default: return Color(red: 1.0, green: 0.38, blue: 0.30)
+        }
+    }
+
+    private var costText: String {
+        usage.cost >= 1 ? String(format: "$%.2f", usage.cost) : String(format: "$%.3f", usage.cost)
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            if usage.contextWindow > 0 {
+                Text("ctx \(Int((usage.contextPct * 100).rounded()))%")
+                    .foregroundStyle(contextColor)
+                Text("·").foregroundStyle(Self.dimColor)
+            }
+            Text("\(ClaudeUsageScanner.formatTokens(usage.input + usage.cacheWrite))↑")
+                .foregroundStyle(Self.inColor)
+            Text("\(ClaudeUsageScanner.formatTokens(usage.output))↓")
+                .foregroundStyle(Self.outColor)
+            if usage.cost > 0 {
+                Text("·").foregroundStyle(Self.dimColor)
+                Text(costText).foregroundStyle(Self.costColor)
+            }
+        }
+        .font(.system(size: max(fontSize - 1, 9), weight: .medium, design: .monospaced))
+        .lineLimit(1)
+        .fixedSize()
+        .help(tooltip)
+    }
+
+    private var tooltip: String {
+        let f = ClaudeUsageScanner.formatTokens
+        var lines = [
+            "in \(f(usage.input)) · out \(f(usage.output)) · cache read \(f(usage.cacheRead)) · cache write \(f(usage.cacheWrite))",
+            "total \(f(usage.totalTokens))",
+        ]
+        if usage.contextWindow > 0 {
+            lines.append("context \(f(usage.contextTokens)) / \(f(usage.contextWindow)) (\(Int((usage.contextPct * 100).rounded()))%)")
+        }
+        if usage.cost > 0 {
+            lines.append(String(format: "cost $%.4f", usage.cost))
+        }
+        return lines.joined(separator: "\n")
     }
 }
 
@@ -2387,6 +2548,12 @@ private struct SessionCard: View {
                 }
                 .padding(.leading, 4)
             }
+                if let usage = session.usage, usage.totalTokens > 0 || usage.contextTokens > 0 {
+                    HStack(spacing: 0) {
+                        Spacer(minLength: 0)
+                        SessionUsageBadge(usage: usage, fontSize: fontSize)
+                    }
+                }
             } // end Column 2 VStack
         } // end HStack
         .padding(.horizontal, 16)

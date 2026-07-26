@@ -6,6 +6,9 @@ public struct ClaudeUsageTotals: Equatable, Sendable {
     public var cacheCreationTokens = 0
     public var cacheReadTokens = 0
     public var messageCount = 0
+    /// Summed provider-reported cost in USD (0 for sources that don't report it,
+    /// e.g. Claude transcripts — only Oh My Pi records per-turn cost).
+    public var cost = 0.0
 
     public var isEmpty: Bool { messageCount == 0 }
 
@@ -17,6 +20,7 @@ public struct ClaudeUsageTotals: Equatable, Sendable {
         cacheCreationTokens += other.cacheCreationTokens
         cacheReadTokens += other.cacheReadTokens
         messageCount += other.messageCount
+        cost += other.cost
     }
 }
 

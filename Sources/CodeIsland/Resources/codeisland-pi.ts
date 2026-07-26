@@ -1,5 +1,5 @@
 // CodeIsland pi extension
-// version: v3
+// version: v5
 
 /**
  * @fileoverview CodeIsland Integration Extension.
@@ -50,6 +50,15 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 /** Unix socket path CodeIsland listens on (user-scoped). */
 const userId = getuid?.() ?? 0;
 const SOCKET_PATH = `/tmp/codeisland-${userId}.sock`;
+
+/**
+ * Upper bound for any wait that blocks an OMP `tool_call` handler. OMP force-
+ * settles a handler at EXTENSION_HANDLER_TIMEOUT_MS (30s) and, on timeout,
+ * BLOCKS the tool with a spurious "handler timed out" reason. Staying safely
+ * under that lets a slow/unreachable CodeIsland fall through cleanly to OMP's
+ * own TUI dialog (ask) or an allow (permission) instead of hard-blocking.
+ */
+const MAX_HANDLER_WAIT_MS = 25_000;
 
 /**
  * Bridge binary path. Used for blocking permission requests because Node's
@@ -225,6 +234,43 @@ function displayToolName(name: string): string {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
+/**
+ * Reads cumulative session token usage + current context window from the
+ * extension context and returns a `{ usage: {...} }` fragment to spread into an
+ * event payload. Returns `{}` when usage is unavailable so callers can spread it
+ * unconditionally. Never throws — usage is best-effort telemetry.
+ */
+function usageBlock(ctx: {
+  sessionManager?: { getUsageStatistics?: () => Record<string, number> | undefined };
+  getContextUsage?: () => { tokens?: number; contextWindow?: number; percent?: number } | undefined;
+}): Record<string, unknown> {
+  try {
+    const s = ctx.sessionManager?.getUsageStatistics?.();
+    if (!s) return {};
+    const c = ctx.getContextUsage?.();
+    const usage: Record<string, number> = {
+      input: s.input ?? 0,
+      output: s.output ?? 0,
+      cacheRead: s.cacheRead ?? 0,
+      cacheWrite: s.cacheWrite ?? 0,
+      totalTokens: s.totalTokens ?? 0,
+      cost: s.cost ?? 0,
+    };
+    if (c) {
+      const ctxTokens = c.tokens ?? 0;
+      const ctxWindow = c.contextWindow ?? 0;
+      usage.contextTokens = ctxTokens;
+      usage.contextWindow = ctxWindow;
+      // Compute the fraction ourselves (0…1) — robust to `percent` being a
+      // 0–100 value or absent; CodeIsland multiplies by 100 for display.
+      usage.contextPct = ctxWindow > 0 ? ctxTokens / ctxWindow : (c.percent ?? 0);
+    }
+    return { usage };
+  } catch {
+    return {};
+  }
+}
+
 /** Extracts plain text from the last assistant message in an event.messages array. */
 function extractLastAssistantText(
   messages: readonly unknown[],
@@ -340,7 +386,7 @@ export default function codeislandExtension(pi: ExtensionAPI) {
           tool_input: { questions },
           _pi_tool_call_id: event.toolCallId,
         }, tty),
-        86_400_000, // waiting on a human — same 24h budget as PermissionRequest hooks
+        MAX_HANDLER_WAIT_MS, // waiting on a human, bounded by OMP's 30s handler watchdog
       );
     } finally {
       pendingPermissionSessions.delete(sid);
@@ -406,6 +452,7 @@ export default function codeislandExtension(pi: ExtensionAPI) {
       base(sessionId, ctx.cwd, {
         hook_event_name: "UserPromptSubmit",
         prompt,
+        ...usageBlock(ctx),
       }, tty),
     );
   });
@@ -425,6 +472,7 @@ export default function codeislandExtension(pi: ExtensionAPI) {
         hook_event_name: "Stop",
         last_assistant_message: lastAssistantMessage || undefined,
         ...(sessionName ? { session_title: sessionName } : {}),
+        ...usageBlock(ctx),
       }, tty),
     );
   });
@@ -477,7 +525,7 @@ export default function codeislandExtension(pi: ExtensionAPI) {
 
       let response: Record<string, unknown> | null = null;
       try {
-        response = await sendAndWaitResponse(payload);
+        response = await sendAndWaitResponse(payload, MAX_HANDLER_WAIT_MS);
       } finally {
         pendingPermissionSessions.delete(sid);
       }
@@ -500,6 +548,7 @@ export default function codeislandExtension(pi: ExtensionAPI) {
           hook_event_name: "PreToolUse",
           tool_name: toolName,
           tool_input: toolInput,
+          ...usageBlock(ctx),
         }, tty),
       );
     }
@@ -515,7 +564,7 @@ export default function codeislandExtension(pi: ExtensionAPI) {
     if (pendingPermissionSessions.has(sid)) return;
 
     await sendToSocket(
-      base(sessionId, ctx.cwd, { hook_event_name: "PostToolUse" }, tty),
+      base(sessionId, ctx.cwd, { hook_event_name: "PostToolUse", ...usageBlock(ctx) }, tty),
     );
   });
 

@@ -378,8 +378,16 @@ extension AppState {
             messages: messages,
             pendingAction: pendingAction,
             question: questionPayload,
-            sessions: appleCompanionSessionPreviews(primarySessionId: sessionId)
+            sessions: appleCompanionSessionPreviews(primarySessionId: sessionId),
+            usage: Self.appleCompanionUsage(from: displaySession)
         )
+    }
+
+    /// Compact usage summary for the companion apps — nil until the CLI reports
+    /// tokens, so idle/legacy sessions add nothing to the payload.
+    static func appleCompanionUsage(from session: SessionSnapshot?) -> AppleCompanionUsage? {
+        guard let u = session?.usage, u.totalTokens > 0 || u.contextTokens > 0 else { return nil }
+        return AppleCompanionUsage(contextPct: u.contextPct, totalTokens: u.totalTokens, cost: u.cost)
     }
 
     private func appleCompanionSessionPreviews(primarySessionId: String?) -> [AppleCompanionSessionPreview] {
@@ -409,6 +417,7 @@ extension AppState {
                 workspaceName: session.projectDisplayName,
                 message: appleCompanionSessionMessage(sessionId: sessionId, session: session),
                 messages: messages,
+                usage: Self.appleCompanionUsage(from: session),
                 updatedAt: session.lastActivity
             )
         }

@@ -107,4 +107,64 @@ final class PiAgentEventFlowTests: XCTestCase {
         ])
         XCTAssertTrue(stopEffects.contains(.enqueueCompletion(sessionId: sessionId)))
     }
+
+    func testUsagePayloadPopulatesSessionUsage() throws {
+        let sessionId = "pi-usage"
+        var sessions: [String: SessionSnapshot] = [:]
+
+        _ = try apply([
+            "hook_event_name": "PostToolUse",
+            "session_id": sessionId,
+            "_source": "omp",
+            "cwd": "/tmp/x",
+            "usage": [
+                "input": 42,
+                "output": 1337,
+                "cacheRead": 900,
+                "cacheWrite": 5000,
+                "totalTokens": 7279,
+                "cost": 0.1234,
+                "contextTokens": 32000,
+                "contextWindow": 200000,
+                "contextPct": 0.16,
+            ],
+        ], to: &sessions)
+
+        let usage = try XCTUnwrap(sessions[sessionId]?.usage)
+        XCTAssertEqual(usage.input, 42)
+        XCTAssertEqual(usage.output, 1337)
+        XCTAssertEqual(usage.cacheRead, 900)
+        XCTAssertEqual(usage.cacheWrite, 5000)
+        XCTAssertEqual(usage.totalTokens, 7279)
+        XCTAssertEqual(usage.cost, 0.1234, accuracy: 1e-9)
+        XCTAssertEqual(usage.contextTokens, 32000)
+        XCTAssertEqual(usage.contextWindow, 200000)
+        XCTAssertEqual(usage.contextPct, 0.16, accuracy: 1e-9)
+    }
+
+    func testMissingUsageKeysPreservePriorTotals() throws {
+        let sessionId = "pi-usage-merge"
+        var sessions: [String: SessionSnapshot] = [:]
+
+        _ = try apply([
+            "hook_event_name": "PreToolUse",
+            "session_id": sessionId,
+            "_source": "omp",
+            "usage": ["input": 10, "output": 20, "totalTokens": 30],
+        ], to: &sessions)
+        // A later event with only context info must not zero out token totals.
+        _ = try apply([
+            "hook_event_name": "PostToolUse",
+            "session_id": sessionId,
+            "_source": "omp",
+            "usage": ["contextTokens": 100, "contextWindow": 1000, "contextPct": 0.1],
+        ], to: &sessions)
+
+        let usage = try XCTUnwrap(sessions[sessionId]?.usage)
+        XCTAssertEqual(usage.input, 10)
+        XCTAssertEqual(usage.output, 20)
+        XCTAssertEqual(usage.totalTokens, 30)
+        XCTAssertEqual(usage.contextTokens, 100)
+        XCTAssertEqual(usage.contextWindow, 1000)
+    }
 }
