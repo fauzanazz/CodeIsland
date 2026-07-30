@@ -113,6 +113,7 @@ final class AppState {
             }
             if surface.isExpanded {
                 refreshClaudeUsageIfStale()
+                refreshOmpUsageIfStale()
             }
         }
     }
@@ -124,6 +125,12 @@ final class AppState {
     /// Incremental parse state — round-trips through each detached scan so
     /// growing transcripts are only read past their last consumed offset.
     private var usageFileCache = ClaudeUsageScanner.FileCache()
+
+    /// Local-transcript token usage for Oh My Pi / OMP sessions, shown as a
+    /// second footer line. Same lazy-on-expansion, local-files-only contract.
+    var ompUsage: OmpUsageScanner.Snapshot?
+    private var ompUsageScanInFlight = false
+    private var ompUsageFileCache = OmpUsageScanner.FileCache()
 
     /// Glance completion mode: an agent finished while the pill was collapsed —
     /// light the dot instead of expanding. Cleared when the user expands the
@@ -847,6 +854,25 @@ final class AppState {
                 self?.claudeUsage = snapshot
                 self?.usageFileCache = cache
                 self?.usageScanInFlight = false
+            }
+        }
+    }
+
+    /// OMP counterpart of `refreshClaudeUsageIfStale` — scans
+    /// ~/.omp/agent/sessions transcripts off the main thread.
+    func refreshOmpUsageIfStale() {
+        guard UserDefaults.standard.bool(forKey: SettingsKey.showOmpUsageStats) else { return }
+        guard !ompUsageScanInFlight else { return }
+        if let scannedAt = ompUsage?.scannedAt, Date().timeIntervalSince(scannedAt) < 120 { return }
+        ompUsageScanInFlight = true
+        let cacheCopy = ompUsageFileCache
+        Task.detached(priority: .utility) {
+            var cache = cacheCopy
+            let snapshot = OmpUsageScanner.scan(cache: &cache)
+            await MainActor.run { [weak self] in
+                self?.ompUsage = snapshot
+                self?.ompUsageFileCache = cache
+                self?.ompUsageScanInFlight = false
             }
         }
     }

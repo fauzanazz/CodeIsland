@@ -68,6 +68,9 @@ enum SettingsKey {
     // Token-usage footer (local Claude transcript aggregation)
     static let showUsageStats = "showUsageStats"
 
+    // Token-usage footer (local Oh My Pi / OMP transcript aggregation)
+    static let showOmpUsageStats = "showOmpUsageStats"
+
     // Completion notification: "expand" | "glance" | "off". Successor of the
     // boolean autoExpandOnCompletion — see AppState.completionStyle migration.
     static let completionNotificationStyle = "completionNotificationStyle"
@@ -162,6 +165,7 @@ struct SettingsDefaults {
     static let quietHoursEnd = 8 * 60
     static let showGitBranch = true
     static let showUsageStats = true
+    static let showOmpUsageStats = true
 
     static let rotationInterval = 5
 
@@ -242,6 +246,7 @@ class SettingsManager {
             SettingsKey.quietHoursEnd: SettingsDefaults.quietHoursEnd,
             SettingsKey.showGitBranch: SettingsDefaults.showGitBranch,
             SettingsKey.showUsageStats: SettingsDefaults.showUsageStats,
+            SettingsKey.showOmpUsageStats: SettingsDefaults.showOmpUsageStats,
             SettingsKey.rotationInterval: SettingsDefaults.rotationInterval,
             SettingsKey.maxToolHistory: SettingsDefaults.maxToolHistory,
             SettingsKey.mascotSpeed: SettingsDefaults.mascotSpeed,

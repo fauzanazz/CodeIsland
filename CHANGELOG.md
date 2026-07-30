@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### English
+- Add Oh My Pi / OMP token-usage integration. Per session, the notch shows live context-window fill (color-coded as it fills) plus billed input / output tokens, with a tooltip breaking down input, output, cache read/write, total, context, and cost — pushed live from the OMP/Pi extension via `getUsageStatistics()` + `getContextUsage()` (no API calls).
+- Add an OMP "today" footer under the session list — billed tokens (in↑ / out↓), summed daily cost, active work time (WakaTime-style: union of session activity, idle gaps > 5min excluded), and request (assistant-turn) count, plus the 12-hour activity sparkline. Multi-color and aggregated from local `~/.omp/agent/sessions` transcripts (toggle: Settings → Appearance → "Show Oh My Pi / OMP token usage").
+- Mirror per-session token usage (context %, total tokens, cost) to the iPhone / Apple Watch companion payload.
+- Fix OMP/Pi permission & AskUserQuestion forwarding hard-blocking the tool when the island answer takes longer than OMP's 30s extension-handler watchdog — waits are now bounded to 25s and fall through cleanly to OMP's own dialog / allow instead of blocking with a spurious "handler timed out" error.
+
 ## [v1.0.30] - 2026-07-10
 
 ### English

@@ -66,6 +66,24 @@ public struct AppleCompanionQuestionPayload: Codable, Equatable, Sendable {
     }
 }
 
+/// Compact token-usage summary for a session, mirrored to iPhone / Apple Watch.
+/// All fields optional at the wire level (added after v1) — older clients that
+/// never send/read `usage` are unaffected.
+public struct AppleCompanionUsage: Codable, Equatable, Sendable {
+    /// Current context-window fill, 0…1.
+    public let contextPct: Double
+    /// Cumulative session tokens (input + output + cache).
+    public let totalTokens: Int
+    /// Cumulative session cost in USD.
+    public let cost: Double
+
+    public init(contextPct: Double, totalTokens: Int, cost: Double) {
+        self.contextPct = contextPct
+        self.totalTokens = totalTokens
+        self.cost = cost
+    }
+}
+
 public struct AppleCompanionSessionPreview: Codable, Equatable, Sendable {
     public let sessionId: String?
     public let source: String
@@ -77,6 +95,8 @@ public struct AppleCompanionSessionPreview: Codable, Equatable, Sendable {
     /// 向后兼容：旧客户端无此字段时按空数组处理。
     public let messages: [AppleCompanionMessagePreview]
     public let updatedAt: Date
+    /// Token usage for this session (nil when the CLI hasn't reported it).
+    public let usage: AppleCompanionUsage?
 
     public init(
         sessionId: String?,
@@ -86,6 +106,7 @@ public struct AppleCompanionSessionPreview: Codable, Equatable, Sendable {
         workspaceName: String?,
         message: String?,
         messages: [AppleCompanionMessagePreview] = [],
+        usage: AppleCompanionUsage? = nil,
         updatedAt: Date = Date()
     ) {
         self.sessionId = sessionId
@@ -95,11 +116,12 @@ public struct AppleCompanionSessionPreview: Codable, Equatable, Sendable {
         self.workspaceName = workspaceName
         self.message = message
         self.messages = messages
+        self.usage = usage
         self.updatedAt = updatedAt
     }
 
     private enum CodingKeys: String, CodingKey {
-        case sessionId, source, status, toolName, workspaceName, message, messages, updatedAt
+        case sessionId, source, status, toolName, workspaceName, message, messages, usage, updatedAt
     }
 
     public init(from decoder: Decoder) throws {
@@ -111,6 +133,7 @@ public struct AppleCompanionSessionPreview: Codable, Equatable, Sendable {
         workspaceName = try c.decodeIfPresent(String.self, forKey: .workspaceName)
         message = try c.decodeIfPresent(String.self, forKey: .message)
         messages = try c.decodeIfPresent([AppleCompanionMessagePreview].self, forKey: .messages) ?? []
+        usage = try c.decodeIfPresent(AppleCompanionUsage.self, forKey: .usage)
         updatedAt = try c.decode(Date.self, forKey: .updatedAt)
     }
 }
@@ -128,6 +151,8 @@ public struct AppleCompanionStatePayload: Codable, Equatable, Sendable {
     public let question: AppleCompanionQuestionPayload?
     public let sessions: [AppleCompanionSessionPreview]
     public let updatedAt: Date
+    /// Token usage for the active session (nil when unreported).
+    public let usage: AppleCompanionUsage?
 
     public init(
         version: Int = 1,
@@ -141,6 +166,7 @@ public struct AppleCompanionStatePayload: Codable, Equatable, Sendable {
         pendingAction: AppleCompanionPendingAction?,
         question: AppleCompanionQuestionPayload? = nil,
         sessions: [AppleCompanionSessionPreview] = [],
+        usage: AppleCompanionUsage? = nil,
         updatedAt: Date = Date()
     ) {
         self.version = version
@@ -154,6 +180,7 @@ public struct AppleCompanionStatePayload: Codable, Equatable, Sendable {
         self.pendingAction = pendingAction
         self.question = question
         self.sessions = sessions
+        self.usage = usage
         self.updatedAt = updatedAt
     }
 
@@ -169,6 +196,7 @@ public struct AppleCompanionStatePayload: Codable, Equatable, Sendable {
         case pendingAction
         case question
         case sessions
+        case usage
         case updatedAt
     }
 
@@ -185,6 +213,7 @@ public struct AppleCompanionStatePayload: Codable, Equatable, Sendable {
         pendingAction = try container.decodeIfPresent(AppleCompanionPendingAction.self, forKey: .pendingAction)
         question = try container.decodeIfPresent(AppleCompanionQuestionPayload.self, forKey: .question)
         sessions = try container.decodeIfPresent([AppleCompanionSessionPreview].self, forKey: .sessions) ?? []
+        usage = try container.decodeIfPresent(AppleCompanionUsage.self, forKey: .usage)
         updatedAt = try container.decode(Date.self, forKey: .updatedAt)
     }
 }

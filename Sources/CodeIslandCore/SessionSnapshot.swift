@@ -6,6 +6,23 @@ public enum SessionTitleSource: String, Sendable, Codable {
     case claudeAiTitle
 }
 
+/// Live token-usage snapshot for a single agent session, pushed by the CLI
+/// hook/extension (currently Oh My Pi / Pi via `ctx.sessionManager
+/// .getUsageStatistics()` + `ctx.getContextUsage()`). Cumulative over the
+/// whole session; `context*` reflect the current turn's context window.
+public struct SessionUsage: Equatable, Sendable {
+    public var input = 0
+    public var output = 0
+    public var cacheRead = 0
+    public var cacheWrite = 0
+    public var totalTokens = 0
+    public var cost = 0.0
+    public var contextTokens = 0
+    public var contextWindow = 0
+    public var contextPct = 0.0
+    public init() {}
+}
+
 public struct SessionSnapshot: Sendable {
     public static let customCLIConfigsKey = "custom_cli_configs_v1"
 
@@ -128,6 +145,8 @@ public struct SessionSnapshot: Sendable {
     /// (a turn may have switched branches). nil for non-repo and remote cwds.
     public var gitBranch: String?
     public var gitIsWorktree: Bool = false
+    /// Live token usage for this session (nil until the CLI reports it).
+    public var usage: SessionUsage?
 
     public init(startTime: Date = Date()) {
         self.startTime = startTime
@@ -778,6 +797,24 @@ public func reduceEvent(
     if event.agentId == nil {
         extractMetadata(into: &sessions, sessionId: sessionId, event: event)
     }
+
+    // Token usage push (Oh My Pi / Pi): events may carry a `usage` object with
+    // cumulative session totals + current context window. Merge whatever the CLI
+    // reported; missing keys keep their prior value so a lightweight event never
+    // zeroes out established totals.
+    if event.agentId == nil, let raw = event.rawJSON["usage"] as? [String: Any] {
+        var usage = sessions[sessionId]?.usage ?? SessionUsage()
+        if let v = intFromJSON(raw["input"]) { usage.input = v }
+        if let v = intFromJSON(raw["output"]) { usage.output = v }
+        if let v = intFromJSON(raw["cacheRead"]) { usage.cacheRead = v }
+        if let v = intFromJSON(raw["cacheWrite"]) { usage.cacheWrite = v }
+        if let v = intFromJSON(raw["totalTokens"]) { usage.totalTokens = v }
+        if let v = doubleFromJSON(raw["cost"]) { usage.cost = v }
+        if let v = intFromJSON(raw["contextTokens"]) { usage.contextTokens = v }
+        if let v = intFromJSON(raw["contextWindow"]) { usage.contextWindow = v }
+        if let v = doubleFromJSON(raw["contextPct"]) { usage.contextPct = v }
+        sessions[sessionId]?.usage = usage
+    }
     let isRemote = sessions[sessionId]?.isRemote == true
 
     // Cline ships hooks via shell scripts that spawn the bridge in the background,
@@ -1268,6 +1305,28 @@ private func firstStringFromDict(_ dict: [String: Any], keys: [String]) -> Strin
         }
     }
     return nil
+}
+
+/// Coerce a JSON value (NSNumber / Int / Double / numeric String) to Int.
+func intFromJSON(_ value: Any?) -> Int? {
+    switch value {
+    case let n as Int: return n
+    case let n as Double: return Int(n)
+    case let n as NSNumber: return n.intValue
+    case let s as String: return Int(s) ?? Double(s).map(Int.init)
+    default: return nil
+    }
+}
+
+/// Coerce a JSON value (NSNumber / Int / Double / numeric String) to Double.
+func doubleFromJSON(_ value: Any?) -> Double? {
+    switch value {
+    case let n as Double: return n
+    case let n as Int: return Double(n)
+    case let n as NSNumber: return n.doubleValue
+    case let s as String: return Double(s)
+    default: return nil
+    }
 }
 
 private func firstStringFromEvent(_ event: HookEvent, keys: [String], includeNested: Bool) -> String? {

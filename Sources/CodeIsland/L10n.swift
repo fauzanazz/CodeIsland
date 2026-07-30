@@ -188,6 +188,8 @@ final class L10n: ObservableObject {
         "usage_today": "Today",
         "show_usage_stats": "Show Claude token usage",
         "show_usage_stats_desc": "Footer line aggregating token usage from the local Claude Code transcripts (5-hour window and today). Local files only — no network calls.",
+        "show_omp_usage_stats": "Show Oh My Pi / OMP token usage",
+        "show_omp_usage_stats_desc": "Today's footer for Oh My Pi / OMP — billed tokens, summed cost, active work time, and request count, from local session transcripts. Local files only — no network calls.",
 
         // Mascots
         "preview_status": "Preview Status",
@@ -529,6 +531,8 @@ final class L10n: ObservableObject {
         "usage_today": "Heute",
         "show_usage_stats": "Claude-Token-Nutzung anzeigen",
         "show_usage_stats_desc": "Fußzeile mit Token-Nutzung aus den lokalen Claude-Code-Transkripten (5-Stunden-Fenster und heute). Nur lokale Dateien — keine Netzwerkzugriffe.",
+        "show_omp_usage_stats": "Oh My Pi / OMP-Token-Nutzung anzeigen",
+        "show_omp_usage_stats_desc": "Fußzeile mit Token-Nutzung aus den lokalen Oh My Pi / OMP-Sitzungstranskripten (5-Stunden-Fenster und heute). Nur lokale Dateien — keine Netzwerkzugriffe.",
 
         // Mascots
         "preview_status": "Statusvorschau",
@@ -699,6 +703,7 @@ final class L10n: ObservableObject {
         "settings": "Einstellungen",
         "deny": "ABLEHNEN",
         "dismiss": "AUSBLENDEN",
+        "remove_session": "Sitzung entfernen",
         "allow_once": "EINMAL ERLAUBEN",
         "always": "IMMER",
         "approval_queue_label": "Genehmigung %d/%d: %@",
@@ -869,6 +874,8 @@ final class L10n: ObservableObject {
         "usage_today": "今日",
         "show_usage_stats": "显示 Claude 用量统计",
         "show_usage_stats_desc": "在会话列表底部显示从本地 Claude Code 记录聚合的 token 用量（5 小时窗口与今日）。只读本地文件，不发起任何网络请求。",
+        "show_omp_usage_stats": "显示 Oh My Pi / OMP 用量统计",
+        "show_omp_usage_stats_desc": "在会话列表底部显示从本地 Oh My Pi / OMP 会话记录聚合的 token 用量（5 小时窗口与今日）。只读本地文件，不发起任何网络请求。",
 
         // Mascots
         "preview_status": "预览状态",
@@ -1039,6 +1046,7 @@ final class L10n: ObservableObject {
         "settings": "设置",
         "deny": "拒绝",
         "dismiss": "忽略",
+        "remove_session": "移除会话",
         "allow_once": "允许一次",
         "always": "始终允许",
         "approval_queue_label": "审批 %d/%d：%@",
@@ -1209,6 +1217,8 @@ final class L10n: ObservableObject {
         "usage_today": "今日",
         "show_usage_stats": "顯示 Claude 用量統計",
         "show_usage_stats_desc": "在會話列表底部顯示從本地 Claude Code 記錄彙總的 token 用量（5 小時視窗與今日）。僅讀取本地檔案，不發起任何網路請求。",
+        "show_omp_usage_stats": "顯示 Oh My Pi / OMP 用量統計",
+        "show_omp_usage_stats_desc": "在會話列表底部顯示從本地 Oh My Pi / OMP 工作階段記錄彙總的 token 用量（5 小時視窗與今日）。僅讀取本地檔案，不發起任何網路請求。",
 
         // Mascots
         "preview_status": "預覽狀態",
@@ -1379,6 +1389,7 @@ final class L10n: ObservableObject {
         "settings": "設定",
         "deny": "拒絕",
         "dismiss": "忽略",
+        "remove_session": "移除工作階段",
         "allow_once": "允許一次",
         "always": "一律允許",
         "approval_queue_label": "審核 %d/%d：%@",
@@ -1549,6 +1560,8 @@ final class L10n: ObservableObject {
         "usage_today": "今日",
         "show_usage_stats": "Claudeトークン使用量を表示",
         "show_usage_stats_desc": "ローカルの Claude Code トランスクリプトから集計したトークン使用量（5時間ウィンドウと今日）をセッション一覧の下部に表示します。ローカルファイルのみ読み取り、ネットワーク通信は行いません。",
+        "show_omp_usage_stats": "Oh My Pi / OMP トークン使用量を表示",
+        "show_omp_usage_stats_desc": "ローカルの Oh My Pi / OMP セッショントランスクリプトから集計したトークン使用量（5時間ウィンドウと今日）をセッション一覧の下部に表示します。ローカルファイルのみ読み取り、ネットワーク通信は行いません。",
 
         // Mascots
         "preview_status": "プレビュー状態",
@@ -1719,6 +1732,7 @@ final class L10n: ObservableObject {
         "settings": "設定",
         "deny": "拒否",
         "dismiss": "閉じる",
+        "remove_session": "セッションを削除",
         "allow_once": "1回だけ許可",
         "always": "常に",
         "approval_queue_label": "承認 %d/%d: %@",
@@ -1889,6 +1903,8 @@ final class L10n: ObservableObject {
         "usage_today": "오늘",
         "show_usage_stats": "Claude 토큰 사용량 표시",
         "show_usage_stats_desc": "로컬 Claude Code 기록에서 집계한 토큰 사용량(5시간 창과 오늘)을 세션 목록 하단에 표시합니다. 로컬 파일만 읽으며 네트워크 요청은 없습니다.",
+        "show_omp_usage_stats": "Oh My Pi / OMP 토큰 사용량 표시",
+        "show_omp_usage_stats_desc": "로컬 Oh My Pi / OMP 세션 기록에서 집계한 토큰 사용량(5시간 창과 오늘)을 세션 목록 하단에 표시합니다. 로컬 파일만 읽으며 네트워크 요청은 없습니다.",
 
         // Mascots
         "preview_status": "미리보기 상태",
@@ -2059,6 +2075,7 @@ final class L10n: ObservableObject {
         "settings": "설정",
         "deny": "거부",
         "dismiss": "닫기",
+        "remove_session": "세션 제거",
         "allow_once": "한 번 허용",
         "always": "항상",
         "approval_queue_label": "승인 %d/%d: %@",
@@ -2229,6 +2246,8 @@ final class L10n: ObservableObject {
         "usage_today": "Bugün",
         "show_usage_stats": "Claude jeton kullanımını göster",
         "show_usage_stats_desc": "Yerel Claude Code dökümlerinden toplanan jeton kullanımını (5 saatlik pencere ve bugün) oturum listesinin altında gösterir. Yalnızca yerel dosyalar okunur — ağ isteği yapılmaz.",
+        "show_omp_usage_stats": "Oh My Pi / OMP jeton kullanımını göster",
+        "show_omp_usage_stats_desc": "Yerel Oh My Pi / OMP oturum dökümlerinden toplanan jeton kullanımını (5 saatlik pencere ve bugün) oturum listesinin altında gösterir. Yalnızca yerel dosyalar okunur — ağ isteği yapılmaz.",
 
         // Mascots
         "preview_status": "Durumu Önizleme",
@@ -2399,6 +2418,7 @@ final class L10n: ObservableObject {
         "settings": "Ayarlar",
         "deny": "REDDET",
         "dismiss": "YOKSAY",
+        "remove_session": "Oturumu Kaldır",
         "allow_once": "BİR KEZ İZİN VER",
         "always": "HER ZAMAN",
         "approval_queue_label": "Onay %d/%d: %@",
