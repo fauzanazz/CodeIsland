@@ -74,9 +74,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             appState.handleBuddyControlCommand(command)
         }
         AppleCompanionPublisher.shared.attach(appState)
-        AppleCompanionPublisher.shared.onFocusRequest = { [weak appState] mascot in
+        AppleCompanionPublisher.shared.onFocusRequest = { [weak appState] sessionId, source in
             guard let appState else { return }
-            ESP32FocusCoordinator.handle(mascot: mascot, appState: appState)
+            appState.focusCompanionSession(sessionId: sessionId, source: source)
         }
         AppleCompanionPublisher.shared.onControlCommand = { [weak appState] command in
             guard let appState else { return }
@@ -85,6 +85,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         AppleCompanionPublisher.shared.onQuestionAnswer = { [weak appState] answer in
             guard let appState else { return }
             appState.answerCompanionQuestion(answer)
+        }
+        AppleCompanionPublisher.shared.onSendText = { [weak appState] sessionId, source, text in
+            guard let appState else { return }
+            appState.sendTextToCompanionSession(sessionId: sessionId, source: source, text: text)
         }
         let buddyEnabled = UserDefaults.standard.bool(forKey: SettingsKey.esp32BridgeEnabled)
         let buddySyncInterval = UserDefaults.standard.double(forKey: SettingsKey.esp32HeartbeatSeconds)

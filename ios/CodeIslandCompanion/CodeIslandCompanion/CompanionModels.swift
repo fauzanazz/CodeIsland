@@ -18,21 +18,21 @@ enum CompanionStatus: String, Codable, Hashable {
 
     var label: String {
         switch self {
-        case .idle: return "空闲"
-        case .processing: return "处理中"
-        case .running: return "运行中"
-        case .waitingApproval: return "等待批准"
-        case .waitingQuestion: return "等待回答"
+        case .idle: return "Idle"
+        case .processing: return "Processing"
+        case .running: return "Running"
+        case .waitingApproval: return "Waiting for Approval"
+        case .waitingQuestion: return "Waiting for Answer"
         }
     }
 
     var shortLabel: String {
         switch self {
-        case .idle: return "空闲"
-        case .processing: return "处理"
-        case .running: return "运行"
-        case .waitingApproval: return "批准"
-        case .waitingQuestion: return "问题"
+        case .idle: return "Idle"
+        case .processing: return "Processing"
+        case .running: return "Running"
+        case .waitingApproval: return "Approval"
+        case .waitingQuestion: return "Question"
         }
     }
 
@@ -65,8 +65,8 @@ enum CompanionMessageRole: String, Codable {
 
     var label: String {
         switch self {
-        case .user: return "你"
-        case .assistant: return "助手"
+        case .user: return "You"
+        case .assistant: return "Assistant"
         }
     }
 }
@@ -266,6 +266,7 @@ enum CompanionCommandType: String, Codable {
     case denyCurrentPermission
     case skipCurrentQuestion
     case answerQuestion
+    case sendText
     case focus
 }
 

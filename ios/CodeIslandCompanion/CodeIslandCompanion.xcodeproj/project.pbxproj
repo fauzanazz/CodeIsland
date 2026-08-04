@@ -28,6 +28,14 @@
 		3B9EA0EE7B76975935E76A33 /* QoderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5393F6AABCBEEDA6A832553 /* QoderView.swift */; };
 		406E06EA697812F1527C2EBA /* PixelCharacterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6345881A14A90FBB79C7453 /* PixelCharacterView.swift */; };
 		454B79632040B38A8EE556B1 /* TraeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A7D0B4EC41F3FEC24838746 /* TraeView.swift */; };
+		C301C301C301C301C301C301 /* MascotMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A1A1 /* MascotMotion.swift */; };
+		C302C302C302C302C302C302 /* MascotMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A1A1 /* MascotMotion.swift */; };
+		C303C303C303C303C303C303 /* MascotMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A1A1 /* MascotMotion.swift */; };
+		C304C304C304C304C304C304 /* MascotMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A1A1A1A1A1A1A1A1A1A1A1 /* MascotMotion.swift */; };
+		D401D401D401D401D401D401 /* MascotTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B2B2B2B2B2B2B2B2B2B2B2 /* MascotTimeline.swift */; };
+		D402D402D402D402D402D402 /* MascotTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B2B2B2B2B2B2B2B2B2B2B2 /* MascotTimeline.swift */; };
+		D403D403D403D403D403D403 /* MascotTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B2B2B2B2B2B2B2B2B2B2B2 /* MascotTimeline.swift */; };
+		D404D404D404D404D404D404 /* MascotTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B2B2B2B2B2B2B2B2B2B2B2 /* MascotTimeline.swift */; };
 		4E223E65F13F078A4388DFBC /* WatchBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3A7210B0F1BDDB7803D970 /* WatchBridge.swift */; };
 		53AAA61D301B8A543539C4B2 /* CopilotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F7787F642A8E89A5AA5FFFC /* CopilotView.swift */; };
 		54D41F7821F5757358C1E651 /* BuddyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B07028BAA056A1DA7C7791 /* BuddyView.swift */; };
@@ -225,6 +233,8 @@
 		9A2B84F4F96272BE5A760B08 /* CodeIslandCompanion.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CodeIslandCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A637A87231D2C2493FF97990 /* CursorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorView.swift; sourceTree = "<group>"; };
 		A6470A3909D478701A3B07E5 /* DexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DexView.swift; sourceTree = "<group>"; };
+		A1A1A1A1A1A1A1A1A1A1A1A1 /* MascotMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MascotMotion.swift; sourceTree = "<group>"; };
+		B2B2B2B2B2B2B2B2B2B2B2B2 /* MascotTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MascotTimeline.swift; sourceTree = "<group>"; };
 		AB36FBACC9BA81390F2EC8BE /* CodeIslandWatchWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CodeIslandWatchWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC142A70E79612F32AF08DF2 /* CodeIslandWatchWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CodeIslandWatchWidget.entitlements; sourceTree = "<group>"; };
 		B23882298428AF63A26BAE4E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -333,6 +343,8 @@
 				BE12267AF913F735B14B643A /* HermesView.swift */,
 				53EE587DE1B0740F9A5B0B19 /* KimiView.swift */,
 				23F0ECA53BBAD64BA8C9771F /* OpenCodeView.swift */,
+				A1A1A1A1A1A1A1A1A1A1A1A1 /* MascotMotion.swift */,
+				B2B2B2B2B2B2B2B2B2B2B2B2 /* MascotTimeline.swift */,
 				C6345881A14A90FBB79C7453 /* PixelCharacterView.swift */,
 				C5393F6AABCBEEDA6A832553 /* QoderView.swift */,
 				4978BAC1D31033F1CFFA542C /* QwenView.swift */,
@@ -604,6 +616,8 @@
 				E04C1A6FD543058CDBC1754B /* KimiView.swift in Sources */,
 				3AEB7FB2BC4A5B04E4FE6FEB /* LiveActivityController.swift in Sources */,
 				60EDB1D15F768EF9BEA51D31 /* OpenCodeView.swift in Sources */,
+				C301C301C301C301C301C301 /* MascotMotion.swift in Sources */,
+				D401D401D401D401D401D401 /* MascotTimeline.swift in Sources */,
 				360FEB3C9F4DA28284E96288 /* PixelCharacterView.swift in Sources */,
 				977FDE1B19E4DF1F5985EC0D /* QoderView.swift in Sources */,
 				A19C06D932D5A5FE5DF0D513 /* QwenView.swift in Sources */,
@@ -636,6 +650,8 @@
 				7881FAFAE3BB0A5F0644BED2 /* HermesView.swift in Sources */,
 				6916681318ECDDB5E09EEA93 /* KimiView.swift in Sources */,
 				6449EF8FC0C32176FBF40393 /* OpenCodeView.swift in Sources */,
+				C302C302C302C302C302C302 /* MascotMotion.swift in Sources */,
+				D402D402D402D402D402D402 /* MascotTimeline.swift in Sources */,
 				7211483270726AC25E7F53C1 /* PixelCharacterView.swift in Sources */,
 				8FD5A994D566498D0B7F3495 /* QoderView.swift in Sources */,
 				CBD20DAAC19EF402D7083706 /* QwenView.swift in Sources */,
@@ -666,6 +682,8 @@
 				FC987B58F87CFE9638DBC90E /* HermesView.swift in Sources */,
 				8DDDF81D31DDBF87F1470A97 /* KimiView.swift in Sources */,
 				CD4FAD4958AD915D8E759FFB /* OpenCodeView.swift in Sources */,
+				C303C303C303C303C303C303 /* MascotMotion.swift in Sources */,
+				D403D403D403D403D403D403 /* MascotTimeline.swift in Sources */,
 				DECE043D8EAE0EEEA3417557 /* PixelCharacterView.swift in Sources */,
 				7F8B015A60EAD665A97191D6 /* QoderView.swift in Sources */,
 				136C1DFA4E4F80076A794410 /* QwenView.swift in Sources */,
@@ -705,6 +723,8 @@
 				7C6AE08B3264CADC760A0BB6 /* HermesView.swift in Sources */,
 				2EF1014B18539D7592DBB8D3 /* KimiView.swift in Sources */,
 				1CE1FA4AF1409D284488CC98 /* OpenCodeView.swift in Sources */,
+				C304C304C304C304C304C304 /* MascotMotion.swift in Sources */,
+				D404D404D404D404D404D404 /* MascotTimeline.swift in Sources */,
 				406E06EA697812F1527C2EBA /* PixelCharacterView.swift in Sources */,
 				3B9EA0EE7B76975935E76A33 /* QoderView.swift in Sources */,
 				D5F811823EDFED9541402681 /* QwenView.swift in Sources */,

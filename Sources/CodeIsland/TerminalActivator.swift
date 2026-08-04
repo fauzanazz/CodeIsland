@@ -24,6 +24,22 @@ struct TerminalActivator {
         ("Terminal", "com.apple.Terminal"),
     ]
 
+    /// True only for sessions running in a recognized terminal app where blind
+    /// keystroke injection is safe (never IDE/app-mode: risks typing into an editor).
+    static func canInjectText(into session: SessionSnapshot) -> Bool {
+        guard !session.isRemote else { return false }
+        guard let bundleId = session.termBundleId else { return false }
+        return knownTerminals.contains { $0.bundleId == bundleId }
+    }
+
+    static func sendText(_ text: String, to session: SessionSnapshot, sessionId: String? = nil) {
+        guard canInjectText(into: session), let bundleId = session.termBundleId else { return }
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        activate(session: session, sessionId: sessionId)
+        guard hasAccessibilityPermission(prompt: true) else { return }
+        typeTextWhenFrontmost(text, bundleId: bundleId)
+    }
+
     /// Bundle IDs that commonly host Zellij as a child multiplexer process.
     /// When we detect a Zellij session, we activate the parent terminal first,
     /// then drive `zellij action go-to-tab` inside it to focus the right pane.
@@ -1417,6 +1433,58 @@ struct TerminalActivator {
                 attemptsRemaining: attemptsRemaining - 1
             )
         }
+    }
+
+    private static func typeTextWhenFrontmost(
+        _ text: String,
+        bundleId: String,
+        attemptsRemaining: Int = 8
+    ) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            if NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleId {
+                // ponytail: one Unicode burst plus Return; split per line only if terminals
+                // prove unable to accept embedded newlines safely.
+                postUnicodeString(text)
+                postReturnKey()
+                return
+            }
+
+            guard attemptsRemaining > 0 else { return }
+            typeTextWhenFrontmost(
+                text,
+                bundleId: bundleId,
+                attemptsRemaining: attemptsRemaining - 1
+            )
+        }
+    }
+
+    private static func postUnicodeString(_ text: String) {
+        guard let source = CGEventSource(stateID: .combinedSessionState) else { return }
+        let utf16 = Array(text.utf16)
+
+        for isKeyDown in [true, false] {
+            guard let event = CGEvent(
+                keyboardEventSource: source,
+                virtualKey: 0,
+                keyDown: isKeyDown
+            ) else { continue }
+            utf16.withUnsafeBufferPointer { buffer in
+                event.keyboardSetUnicodeString(
+                    stringLength: buffer.count,
+                    unicodeString: buffer.baseAddress
+                )
+            }
+            event.post(tap: .cghidEventTap)
+        }
+    }
+
+    private static func postReturnKey() {
+        guard let source = CGEventSource(stateID: .combinedSessionState) else { return }
+        let returnKey: CGKeyCode = 36
+        CGEvent(keyboardEventSource: source, virtualKey: returnKey, keyDown: true)?
+            .post(tap: .cghidEventTap)
+        CGEvent(keyboardEventSource: source, virtualKey: returnKey, keyDown: false)?
+            .post(tap: .cghidEventTap)
     }
 
     private static func hasAccessibilityPermission(prompt: Bool) -> Bool {

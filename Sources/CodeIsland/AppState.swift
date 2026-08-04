@@ -1373,6 +1373,31 @@ final class AppState {
         }
     }
 
+    func focusCompanionSession(sessionId: String?, source: String?) {
+        if let sessionId {
+            guard let session = sessions[sessionId] else {
+                log.info("Ignored companion focus: selected session no longer exists")
+                return
+            }
+            TerminalActivator.activate(session: session, sessionId: sessionId)
+            return
+        }
+
+        ESP32FocusCoordinator.handle(
+            mascot: MascotID(sourceName: source) ?? .claude,
+            appState: self
+        )
+    }
+
+    func sendTextToCompanionSession(sessionId: String?, source: String?, text: String) {
+        let id = sessionId ?? activeSessionId
+        guard let id, let session = sessions[id] else {
+            log.info("Ignored companion sendText: no resolvable session")
+            return
+        }
+        TerminalActivator.sendText(text, to: session, sessionId: id)
+    }
+
     func answerCompanionQuestion(_ answer: String) {
         guard !questionQueue.isEmpty else {
             log.info("Ignored companion question answer because question queue is empty")

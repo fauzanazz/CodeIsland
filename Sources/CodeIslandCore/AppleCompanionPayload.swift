@@ -224,6 +224,7 @@ public enum AppleCompanionCommandType: String, Codable, Equatable, Sendable {
     case denyCurrentPermission
     case skipCurrentQuestion
     case answerQuestion
+    case sendText
     case focus
 }
 

@@ -16,11 +16,11 @@ struct CodeIslandSessionActivityPreview: Codable, Hashable, Identifiable {
 
     var statusLabel: String {
         switch status {
-        case "processing": return "处理"
-        case "running": return "运行"
-        case "waitingApproval": return "待批准"
-        case "waitingQuestion": return "待回答"
-        default: return "空闲"
+        case "processing": return "Processing"
+        case "running": return "Running"
+        case "waitingApproval": return "Waiting for Approval"
+        case "waitingQuestion": return "Waiting for Answer"
+        default: return "Idle"
         }
     }
 
@@ -46,11 +46,11 @@ struct CodeIslandActivityAttributes: ActivityAttributes {
 
         var statusLabel: String {
             switch status {
-            case "processing": return "处理中"
-            case "running": return "运行中"
-            case "waitingApproval": return "待批准"
-            case "waitingQuestion": return "待回答"
-            default: return "空闲"
+            case "processing": return "Processing"
+            case "running": return "Running"
+            case "waitingApproval": return "Waiting for Approval"
+            case "waitingQuestion": return "Waiting for Answer"
+            default: return "Idle"
             }
         }
 
@@ -60,11 +60,11 @@ struct CodeIslandActivityAttributes: ActivityAttributes {
 
         var compactStatusLabel: String {
             switch status {
-            case "waitingApproval": return "待批"
-            case "waitingQuestion": return "待答"
-            case "processing": return "处理"
-            case "running": return "运行"
-            default: return "空闲"
+            case "waitingApproval": return "Approve"
+            case "waitingQuestion": return "Answer"
+            case "processing": return "Processing"
+            case "running": return "Running"
+            default: return "Idle"
             }
         }
 

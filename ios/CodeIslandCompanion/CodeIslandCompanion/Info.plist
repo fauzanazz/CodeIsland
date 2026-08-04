@@ -23,9 +23,9 @@
 		<string>_codeisland._tcp</string>
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>CodeIsland 会在本地网络中发现你的 Mac，用于同步当前会话状态。</string>
+	<string>CodeIsland uses the local network to discover your Mac and sync the current session status.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Code Island 使用蓝牙在后台接收 Mac 的轻量状态摘要，用于刷新实时活动和同步手表状态。</string>
+	<string>CodeIsland uses Bluetooth to receive lightweight Mac status updates in the background for Live Activities and Apple Watch sync.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>UIBackgroundModes</key>

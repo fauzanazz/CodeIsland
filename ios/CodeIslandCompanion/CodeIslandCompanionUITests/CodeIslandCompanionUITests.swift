@@ -40,6 +40,20 @@ final class CodeIslandCompanionUITests: XCTestCase {
     }
 
     @MainActor
+    func testPortraitMultiSessionCanSelectDisplayedSession() throws {
+        let app = launchApp(mockState: "multi")
+
+        XCTAssertTrue(app.scrollViews["companion.sessionPicker"].waitForExistence(timeout: 8))
+        let cursorSession = app.buttons["companion.session.s3"]
+        XCTAssertTrue(cursorSession.waitForExistence(timeout: 5))
+        cursorSession.tap()
+
+        let statusCard = app.otherElements["companion.statusCard"]
+        XCTAssertTrue(statusCard.staticTexts["CURSOR"].waitForExistence(timeout: 5))
+        XCTAssertTrue(statusCard.staticTexts["ios"].exists)
+    }
+
+    @MainActor
     func testLandscapeMultiSessionShowsBoard() throws {
         let app = launchApp(mockState: "multi")
         XCUIDevice.shared.orientation = .landscapeLeft

@@ -29,9 +29,9 @@ enum CompanionDisplayText {
 
         switch trimmed {
         case "[Request interrupted by user]", "Request interrupted by user":
-            return "请求已被你中断"
+            return "Request interrupted by you"
         case "[Request interrupted by user for tool use]", "Request interrupted by user for tool use":
-            return "工具调用已被你中断"
+            return "Tool call interrupted by you"
         default:
             return trimmed
         }
@@ -42,21 +42,21 @@ enum CompanionDisplayText {
 
         switch trimmed.lowercased() {
         case "askuserquestion":
-            return "提问"
+            return "Question"
         case "bash", "shell":
-            return "终端"
+            return "Terminal"
         case "read":
-            return "读取"
+            return "Read"
         case "edit", "write", "multiedit":
-            return "编辑"
+            return "Edit"
         case "grep", "glob", "search":
-            return "搜索"
+            return "Search"
         case "webfetch", "websearch":
-            return "网页"
+            return "Web"
         case "todowrite":
-            return "计划"
+            return "Plan"
         case "notebookedit":
-            return "笔记"
+            return "Notes"
         default:
             return trimmed
         }
@@ -67,7 +67,7 @@ enum CompanionDisplayText {
 
         switch trimmed.lowercased() {
         case "workspace":
-            return "工作区"
+            return "Workspace"
         default:
             return trimmed
         }

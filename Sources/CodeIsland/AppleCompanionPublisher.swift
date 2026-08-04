@@ -21,8 +21,9 @@ final class AppleCompanionPublisher: NSObject, ObservableObject {
     var bluetoothSubscribed: Bool { bluetooth.hasSubscribers }
 
     var onControlCommand: ((BuddyControlCommand) -> Void)?
-    var onFocusRequest: ((MascotID) -> Void)?
+    var onFocusRequest: ((_ sessionId: String?, _ source: String?) -> Void)?
     var onQuestionAnswer: ((String) -> Void)?
+    var onSendText: ((_ sessionId: String?, _ source: String?, _ text: String) -> Void)?
 
     private weak var appState: AppState?
     private let peerID: MCPeerID
@@ -135,8 +136,13 @@ final class AppleCompanionPublisher: NSObject, ObservableObject {
                !answer.isEmpty {
                 onQuestionAnswer?(answer)
             }
+        case .sendText:
+            if let text = command.answer?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !text.isEmpty {
+                onSendText?(command.sessionId, command.source, text)
+            }
         case .focus:
-            onFocusRequest?(MascotID(sourceName: command.source) ?? .claude)
+            onFocusRequest?(command.sessionId, command.source)
         }
     }
 
